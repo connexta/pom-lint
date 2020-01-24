@@ -18,10 +18,10 @@
        (into {})))
 
 (defn extract-deps [deplst]
-    (->> deplst
-         (map :content)
-         (map xml->depstruct)
-         set))
+  (->> deplst
+       (map :content)
+       (map xml->depstruct)
+       set))
 
 (defn missing-deps [root-deps plugin-deps]
   (remove root-deps plugin-deps))
@@ -35,7 +35,6 @@
                      x))]
     (xml/emit-element {:tag     :dependency
                        :content (content p)})))
-
 
 (defn main [fname]
   (let [pomfile (read-pom fname)
@@ -53,4 +52,5 @@
     missing))
 
 (comment
-  (main "/opt/projects/cx/pomfix/resources/pom.xml"))
+  ; This will generate the dependency xml to be added.
+  (map miss (main (.getPath (clojure.java.io/resource "artifact-items/pom.xml")))))
