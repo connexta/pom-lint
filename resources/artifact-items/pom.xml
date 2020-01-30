@@ -19,6 +19,13 @@
 
     <groupId>com.example</groupId>
     <artifactId>artifact-items</artifactId>
+    <dependencies>
+        <dependency>
+            <groupId>aaa</groupId>
+            <artifactId>bbb</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
 
     <build>
         <plugins>
@@ -41,6 +48,11 @@
                                     <version>${project.version}</version>
                                     <type>tar.gz</type>
                                     <classifier>npm</classifier>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>aaa</groupId>
+                                    <artifactId>bbb</artifactId>
+                                    <version>${project.version}</version>
                                 </artifactItem>
                             </artifactItems>
                             <outputDirectory>${project.build.directory}/npm</outputDirectory>
