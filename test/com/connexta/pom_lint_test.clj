@@ -7,13 +7,13 @@
   (are [file-name missing-deps]
     (= (pl/main (.getPath (io/resource file-name)))
        missing-deps)
-    "artifact-items/pom.xml"
-    #{{:groupId    ["ddf.lib"],
-       :artifactId ["grunt-port-allocator"],
-       :version    ["${project.version}"],
-       :type       ["tar.gz"],
-       :classifier ["npm"]}}
-    "descriptors/pom.xml"
-    #{{:groupId    ["ddf.features"]
-       :artifactId ["install-profiles"]
-       :version    ["${project.version}"]}}))
+    "artifact-items"
+    #{{:groupId    "ddf.lib",
+       :artifactId "grunt-port-allocator",
+       :version    "${project.version}",
+       :type       "tar.gz",
+       :classifier "npm"}}
+    "descriptors"
+    #{{:groupId    "ddf.features"
+       :artifactId "install-profiles"
+       :version    "${project.version}"}}))
