@@ -5,8 +5,8 @@
 
 (deftest pom-missing-dependency
   (is (= (pl/main (.getPath (io/resource "artifact-items/pom.xml")))
-         [{:groupId ["ddf.lib"],
-           :artifactId ["grunt-port-allocator"],
-           :version ["${project.version}"],
-           :type ["tar.gz"],
-           :classifier ["npm"]}])))
+         #{{:groupId    ["ddf.lib"],
+            :artifactId ["grunt-port-allocator"],
+            :version    ["${project.version}"],
+            :type       ["tar.gz"],
+            :classifier ["npm"]}})))
