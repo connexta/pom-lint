@@ -20,4 +20,8 @@
     "features"
     #{{:artifactId "catalog-security-ingestplugin"
        :groupId    "ddf.catalog.security"
+       :version    "${project.version}"}}
+    "selects-corrects-dep"
+    #{{:groupId    "ddf.features"
+       :artifactId "install-profiles"
        :version    "${project.version}"}}))
