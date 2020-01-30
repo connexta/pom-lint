@@ -10,7 +10,7 @@
        (map (juxt :tag (comp first :content)))
        (into {})))
 
-(defn descriptor->depstruct [match]
+(defn mvncoord->depstruct [match]
   (let [[_ groupid artifactid version] match]
     {:groupId    groupid
      :artifactId artifactid
@@ -25,31 +25,31 @@
        (map xml->depstruct)
        set))
 
-(defn get-all-deps [data]
+(defn get-deps [data]
   (->> (xml-seq data)
        (filter #(#{:dependency :artifactItem} (:tag %)))
        (map :content)
        (map xml->depstruct)
        set))
 
-(defn get-all-descriptors [data]
+(defn get-descriptors [data]
   (->> (xml-seq data)
        (filter #(= :descriptor (:tag %)))
        (map :content)
        first
        (map str/trim)
        (map #(re-matches #"mvn:(.*)\/(.*)\/(.*)\/xml\/features" %))
-       (map descriptor->depstruct)
+       (map mvncoord->depstruct)
        set))
 
-(defn get-all-features [data]
+(defn get-features [data]
   (->> (xml-seq data)
        (filter #(= :bundle (:tag %)))
        (map :content)
        first
        (map str/trim)
        (map #(re-matches #"mvn:(.*)\/(.*)\/(.*)" %))
-       (map descriptor->depstruct)
+       (map mvncoord->depstruct)
        set))
 
 (defn parse-if-exists [path]
@@ -60,9 +60,9 @@
   (let [pom-xml (parse-if-exists (.getPath (io/file project-directory "pom.xml")))
         features-xml (parse-if-exists (.getPath (io/file project-directory "src" "main" "resources" "features.xml")))
         root-deps (get-root-deps pom-xml)
-        all-deps (reduce into [(get-all-deps pom-xml)
-                               (get-all-descriptors pom-xml)
-                               (get-all-features features-xml)])]
+        all-deps (reduce into [(get-deps pom-xml)
+                               (get-descriptors pom-xml)
+                               (get-features features-xml)])]
     (set/difference all-deps root-deps)))
 
 (comment
@@ -72,9 +72,9 @@
   (def data (xml/parse "/opt/git/ddf/pom.xml"))
 
   (get-root-deps data)
-  (get-all-deps data)
-  (get-all-descriptors data)
-  (get-all-features data)
+  (get-deps data)
+  (get-descriptors data)
+  (get-features data)
 
   (main (.getPath (clojure.java.io/resource "artifact-items")))
   (main (.getPath (clojure.java.io/resource "descriptors")))
