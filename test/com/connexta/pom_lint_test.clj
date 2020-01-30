@@ -16,4 +16,8 @@
     "descriptors"
     #{{:groupId    "ddf.features"
        :artifactId "install-profiles"
+       :version    "${project.version}"}}
+    "features"
+    #{{:artifactId "catalog-security-ingestplugin"
+       :groupId    "ddf.catalog.security"
        :version    "${project.version}"}}))
