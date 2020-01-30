@@ -57,8 +57,8 @@
     (xml/parse path)))
 
 (defn main [project-directory]
-  (let [pom-xml (parse-if-exists (str project-directory "/pom.xml"))
-        features-xml (parse-if-exists (str project-directory "/src/main/resources/features.xml"))
+  (let [pom-xml (parse-if-exists (.getPath (io/file project-directory "pom.xml")))
+        features-xml (parse-if-exists (.getPath (io/file project-directory "src" "main" "resources" "features.xml")))
         root-deps (get-root-deps pom-xml)
         all-deps (reduce into [(get-all-deps pom-xml)
                                (get-all-descriptors pom-xml)
