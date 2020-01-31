@@ -1,56 +1,84 @@
 (ns com.connexta.pom-lint
   (:require [clojure.pprint :refer [pprint]]
             [clojure.xml :as xml]
-            [clojure.zip :as zip]
-            [clojure.data.zip.xml :refer [xml-> xml1->]]))
-
-(defn read-pom [pomfile]
-  (zip/xml-zip (xml/parse pomfile)))
-
-(defn build-node-list [pomfile & p]
-  (into []
-        (for [n (apply xml-> pomfile p)]
-          (zip/node n))))
+            [clojure.set :as set]
+            [clojure.string :as str]
+            [clojure.java.io :as io]))
 
 (defn xml->depstruct [dep]
   (->> dep
-       (map (juxt :tag :content))
+       (map (juxt :tag (comp first :content)))
        (into {})))
 
-(defn extract-deps [deplst]
-  (->> deplst
+(defn mvncoord->depstruct [match]
+  (let [[_ groupid artifactid version] match]
+    {:groupId    groupid
+     :artifactId artifactid
+     :version    version}))
+
+(defn get-root-deps [data]
+  (->> (:content data)
+       (filter #(= :dependencies (:tag %)))
+       first
+       :content
        (map :content)
        (map xml->depstruct)
        set))
 
-(defn missing-deps [root-deps plugin-deps]
-  (remove root-deps plugin-deps))
+(defn get-deps [data]
+  (->> (xml-seq data)
+       (filter #(#{:dependency :artifactItem} (:tag %)))
+       (map :content)
+       (map xml->depstruct)
+       set))
 
-(defn miss [p]
-  (let [content
-        (fn [x]
-          (reduce-kv (fn [m k v]
-                       (conj m {:tag k :content v}))
-                     []
-                     x))]
-    (xml/emit-element {:tag     :dependency
-                       :content (content p)})))
+(defn get-descriptors [data]
+  (->> (xml-seq data)
+       (filter #(= :descriptor (:tag %)))
+       (map :content)
+       first
+       (map str/trim)
+       (map #(re-matches #"mvn:(.*)\/(.*)\/(.*)\/xml\/features" %))
+       (map mvncoord->depstruct)
+       set))
 
-(defn main [fname]
-  (let [pomfile (read-pom fname)
-        root-dependencies (build-node-list pomfile :dependencies :dependency)
-        root-plugin-dependencies (build-node-list pomfile :build :plugins :plugin :dependencies :dependency)
-        profile-plugin-dependencies (build-node-list pomfile :profiles :profile :build :plugins :plugin :dependencies :dependency)
-        root-art-dependencies (build-node-list pomfile :build :plugins :plugin :executions :execution :configuration :artifactItems :artifactItem)
-        profile-art-dependencies (build-node-list pomfile :profiles :profile :build :plugins :plugin :executions :execution :configuration :artifactItems :artifactItem)
-        root-deps (extract-deps root-dependencies)
-        plugin-deps (concat (extract-deps root-plugin-dependencies)
-                            (extract-deps profile-plugin-dependencies)
-                            (extract-deps root-art-dependencies)
-                            (extract-deps profile-art-dependencies))
-        missing (missing-deps root-deps plugin-deps)]
-    missing))
+(defn get-features [data]
+  (->> (xml-seq data)
+       (filter #(= :bundle (:tag %)))
+       (map :content)
+       first
+       (map str/trim)
+       (map #(re-matches #"mvn:(.*)\/(.*)\/(.*)" %))
+       (map mvncoord->depstruct)
+       set))
+
+(defn parse-if-exists [path]
+  (if (.exists (io/file path))
+    (xml/parse path)))
+
+(defn main [project-directory]
+  (let [pom-xml (parse-if-exists (.getPath (io/file project-directory "pom.xml")))
+        features-xml (parse-if-exists (.getPath (io/file project-directory "src" "main" "resources" "features.xml")))
+        root-deps (get-root-deps pom-xml)
+        all-deps (reduce into [(get-deps pom-xml)
+                               (get-descriptors pom-xml)
+                               (get-features features-xml)])]
+    (set/difference all-deps root-deps)))
 
 (comment
-  ; This will generate the dependency xml to be added.
-  (map miss (main (.getPath (clojure.java.io/resource "artifact-items/pom.xml")))))
+  (def data (xml/parse (.getPath (clojure.java.io/resource "artifact-items/pom.xml"))))
+  (def data (xml/parse (.getPath (clojure.java.io/resource "descriptors/pom.xml"))))
+  (def data (xml/parse (.getPath (clojure.java.io/resource "features/src/main/resources/features.xml"))))
+  (def data (xml/parse "/opt/git/ddf/pom.xml"))
+
+  (get-root-deps data)
+  (get-deps data)
+  (get-descriptors data)
+  (get-features data)
+
+  (main (.getPath (clojure.java.io/resource "artifact-items")))
+  (main (.getPath (clojure.java.io/resource "descriptors")))
+  (main (.getPath (clojure.java.io/resource "features"))))
+; This will generate the dependency xml to be added.
+
+
