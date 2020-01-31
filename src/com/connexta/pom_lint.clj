@@ -16,9 +16,12 @@
      :artifactId artifactid
      :version    version}))
 
+(defn by-tags [tags]
+  (fn [xml] (tags (:tag xml))))
+
 (defn get-root-deps [data]
   (->> (:content data)
-       (filter #(= :dependencies (:tag %)))
+       (filter (by-tags #{:dependencies}))
        first
        :content
        (map :content)
@@ -27,14 +30,14 @@
 
 (defn get-deps [data]
   (->> (xml-seq data)
-       (filter #(#{:dependency :artifactItem} (:tag %)))
+       (filter (by-tags #{:dependency :artifactItem}))
        (map :content)
        (map xml->depstruct)
        set))
 
 (defn get-descriptors [data]
   (->> (xml-seq data)
-       (filter #(= :descriptor (:tag %)))
+       (filter (by-tags #{:descriptor}))
        (map :content)
        first
        (map str/trim)
@@ -44,7 +47,7 @@
 
 (defn get-features [data]
   (->> (xml-seq data)
-       (filter #(= :bundle (:tag %)))
+       (filter (by-tags #{:bundle}))
        (map :content)
        first
        (map str/trim)
@@ -52,13 +55,14 @@
        (map mvncoord->depstruct)
        set))
 
-(defn parse-if-exists [path]
-  (if (.exists (io/file path))
-    (xml/parse path)))
+(defn parse-if-exists [& path]
+  (let [path (.getPath (apply io/file path))]
+    (if (.exists (io/file path))
+      (xml/parse path))))
 
 (defn main [project-directory]
-  (let [pom-xml (parse-if-exists (.getPath (io/file project-directory "pom.xml")))
-        features-xml (parse-if-exists (.getPath (io/file project-directory "src" "main" "resources" "features.xml")))
+  (let [pom-xml (parse-if-exists project-directory "pom.xml")
+        features-xml (parse-if-exists project-directory "src" "main" "resources" "features.xml")
         root-deps (get-root-deps pom-xml)
         all-deps (reduce into [(get-deps pom-xml)
                                (get-descriptors pom-xml)
