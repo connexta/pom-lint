@@ -3,7 +3,11 @@
             [clojure.xml :as xml]
             [clojure.set :as set]
             [clojure.string :as str]
-            [clojure.java.io :as io]))
+            [clojure.java.io :as io])
+  (:gen-class
+   :name com.connexta.PomLint
+   :main false
+   :methods [^:static [main [String] void]]))
 
 (defn xml->depstruct [dep]
   (->> dep
@@ -68,6 +72,9 @@
                                (get-descriptors pom-xml)
                                (get-features features-xml)])]
     (set/difference all-deps root-deps)))
+
+(defn -main [project-directory]
+  (println (main project-directory)))
 
 (comment
   (def data (xml/parse (.getPath (clojure.java.io/resource "artifact-items/pom.xml"))))
