@@ -4,6 +4,7 @@
             [clojure.set :as set]
             [clojure.string :as str]
             [clojure.java.io :as io])
+  (:import (org.apache.maven.plugin MojoExecutionException))
   (:gen-class
    :name com.connexta.PomLint
    :main false
@@ -74,7 +75,10 @@
     (set/difference all-deps root-deps)))
 
 (defn -main [project-directory]
-  (println (main project-directory)))
+  (let [missing (main project-directory)]
+    (if-not (empty? missing)
+      (throw (MojoExecutionException.
+               (str "Found missing dependencies: " (pr-str missing)))))))
 
 (comment
   (def data (xml/parse (.getPath (clojure.java.io/resource "artifact-items/pom.xml"))))
