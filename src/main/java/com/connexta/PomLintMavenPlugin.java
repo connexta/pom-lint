@@ -24,6 +24,6 @@ public class PomLintMavenPlugin extends AbstractMojo {
     private MavenProject project;
     public void execute () throws MojoExecutionException {
         String projectDirectory = project.getBasedir().getPath();
-        PomLint.main(projectDirectory);
+        PomLint.lint(projectDirectory);
     }
 }
