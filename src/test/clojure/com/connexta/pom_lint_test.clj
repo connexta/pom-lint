@@ -24,4 +24,10 @@
     "selects-corrects-dep"
     #{{:groupId    "ddf.features"
        :artifactId "install-profiles"
-       :version    "${project.version}"}}))
+       :version    "${project.version}"}}
+    "release-artifacts-dont-matter"
+    #{{:groupId    "ddf.lib",
+       :artifactId "grunt-port-allocator",
+       :version    "${project.version}",
+       :type       "tar.gz",
+       :classifier "npm"}}))
