@@ -19,6 +19,7 @@
 
     <groupId>com.example</groupId>
     <artifactId>artifact-items</artifactId>
+    <version>1.2.3-SNAPSHOT</version>
     <dependencies>
         <dependency>
             <groupId>aaa</groupId>

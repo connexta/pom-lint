@@ -19,6 +19,7 @@
 
   <groupId>com.example</groupId>
   <artifactId>descriptors</artifactId>
+  <version>1.2.3-SNAPSHOT</version>
 
   <dependencyManagement>
     <dependencies>
