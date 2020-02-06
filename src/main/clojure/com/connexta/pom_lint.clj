@@ -18,9 +18,11 @@
       :version VERSION}
     ```"
   [dep]
-  (->> dep
+  (select-keys
+    (->> dep
        (map (juxt :tag (comp first :content)))
-       (into {})))
+       (into {}))
+    #{:groupId :artifactId :version :type :classifier}))
 
 (defn mvncoord->depstruct
   "Takes a regex match object for maven coordinates and restructures it as a dependency structure
@@ -41,16 +43,20 @@
   [tags]
   (fn [xml] (tags (:tag xml))))
 
+(defn project-dependency [dep]
+  (= (:version dep) "${project.version}"))
+
 (defn get-root-deps
   "Returns a sequence of dependency structure maps representing the root dependencies of a maven
   pom file. These are the dependencies located at the `project->dependencies->dependency` path."
   [data]
-  (->> (:content data)
+  (->> (xml-seq data)
        (filter (by-tags #{:dependencies}))
-       first
-       :content
+       (mapcat :content)
        (map :content)
        (map xml->depstruct)
+       (map #(merge {:version "${project.version}"} %))
+       (filter project-dependency)
        set))
 
 (defn get-deps
@@ -58,9 +64,10 @@
   defined in `artifactItem` configurations."
   [data]
   (->> (xml-seq data)
-       (filter (by-tags #{:dependency :artifactItem}))
+       (filter (by-tags #{:artifactItem}))
        (map :content)
        (map xml->depstruct)
+       (filter project-dependency)
        set))
 
 (defn get-descriptors
@@ -68,11 +75,13 @@
   [data]
   (->> (xml-seq data)
        (filter (by-tags #{:descriptor}))
-       (map :content)
-       first
+       (mapcat :content)
        (map str/trim)
        (map #(re-matches #"mvn:(.*)\/(.*)\/(.*)\/xml\/features" %))
+       (filter some?)
        (map mvncoord->depstruct)
+       (filter project-dependency)
+       (map #(merge % {:classifier "features" :type "xml"}))
        set))
 
 (defn get-features
@@ -80,11 +89,11 @@
   [data]
   (->> (xml-seq data)
        (filter (by-tags #{:bundle}))
-       (map :content)
-       first
+       (mapcat :content)
        (map str/trim)
        (map #(re-matches #"mvn:(.*)\/(.*)\/(.*)" %))
        (map mvncoord->depstruct)
+       (filter project-dependency)
        set))
 
 (defn parse-if-exists
@@ -109,7 +118,10 @@
   (let [missing (main project-directory)]
     (if-not (empty? missing)
       (throw (MojoExecutionException.
-               (str "Found missing dependencies: " (pr-str missing)))))))
+               (str "Found missing dependencies in "
+                    project-directory
+                    "\n"
+                    (with-out-str (pprint missing))))))))
 
 (comment
   (def data (xml/parse (.getPath (clojure.java.io/resource "artifact-items/pom.xml"))))

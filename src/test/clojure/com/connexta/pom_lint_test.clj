@@ -16,7 +16,9 @@
     "descriptors"
     #{{:groupId    "ddf.features"
        :artifactId "install-profiles"
-       :version    "${project.version}"}}
+       :version    "${project.version}"
+       :classifier "features"
+       :type "xml"}}
     "features"
     #{{:artifactId "catalog-security-ingestplugin"
        :groupId    "ddf.catalog.security"
@@ -24,4 +26,6 @@
     "selects-corrects-dep"
     #{{:groupId    "ddf.features"
        :artifactId "install-profiles"
-       :version    "${project.version}"}}))
+       :version    "${project.version}"
+       :classifier "features"
+       :type "xml"}}))
