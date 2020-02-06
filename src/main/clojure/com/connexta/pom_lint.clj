@@ -10,21 +10,41 @@
    :main false
    :methods [^:static [main [String] void]]))
 
-(defn xml->depstruct [dep]
+(defn xml->depstruct
+  "Converts xml to a dependency structure object. This is a map of the form:
+    ```clojure
+     {:groupId GROUP_ID
+      :artifactId ARTIFACT_ID
+      :version VERSION}
+    ```"
+  [dep]
   (->> dep
        (map (juxt :tag (comp first :content)))
        (into {})))
 
-(defn mvncoord->depstruct [match]
+(defn mvncoord->depstruct
+  "Takes a regex match object for maven coordinates and restructures it as a dependency structure
+  object. This is a map of the form:
+    ```clojure
+     {:groupId GROUP_ID
+      :artifactId ARTIFACT_ID
+      :version VERSION}
+    ```"
+  [match]
   (let [[_ groupid artifactid version] match]
     {:groupId    groupid
      :artifactId artifactid
      :version    version}))
 
-(defn by-tags [tags]
+(defn by-tags
+  "Predicate that returns true if the tags provided are found in the xml under test."
+  [tags]
   (fn [xml] (tags (:tag xml))))
 
-(defn get-root-deps [data]
+(defn get-root-deps
+  "Returns a sequence of dependency structure maps representing the root dependencies of a maven
+  pom file. These are the dependencies located at the `project->dependencies->dependency` path."
+  [data]
   (->> (:content data)
        (filter (by-tags #{:dependencies}))
        first
@@ -33,14 +53,19 @@
        (map xml->depstruct)
        set))
 
-(defn get-deps [data]
+(defn get-deps
+  "Returns all dependencies in a pom file, at any depth. This includes those maven dependencies
+  defined in `artifactItem` configurations."
+  [data]
   (->> (xml-seq data)
        (filter (by-tags #{:dependency :artifactItem}))
        (map :content)
        (map xml->depstruct)
        set))
 
-(defn get-descriptors [data]
+(defn get-descriptors
+  "Returns sequence of regex match objects of strings representing maven coordinates in a pom file."
+  [data]
   (->> (xml-seq data)
        (filter (by-tags #{:descriptor}))
        (map :content)
@@ -50,7 +75,9 @@
        (map mvncoord->depstruct)
        set))
 
-(defn get-features [data]
+(defn get-features
+  "Returns sequence of regex match objects of strings representing maven coordinates in a feature file."
+  [data]
   (->> (xml-seq data)
        (filter (by-tags #{:bundle}))
        (map :content)
@@ -60,12 +87,16 @@
        (map mvncoord->depstruct)
        set))
 
-(defn parse-if-exists [& path]
+(defn parse-if-exists
+  "Parses an xml file if it exists."
+  [& path]
   (let [path (.getPath (apply io/file path))]
     (if (.exists (io/file path))
       (xml/parse path))))
 
-(defn main [project-directory]
+(defn main
+  "Main entry point to the library."
+  [project-directory]
   (let [pom-xml (parse-if-exists project-directory "pom.xml")
         features-xml (parse-if-exists project-directory "src" "main" "resources" "features.xml")
         root-deps (get-root-deps pom-xml)
