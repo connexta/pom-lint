@@ -18,6 +18,7 @@
              description="Security Ingest Plugins">
         <!-- this bundle should be listed in the dependency section of the pom -->
         <bundle>mvn:ddf.catalog.security/catalog-security-ingestplugin/${project.version}</bundle>
+        <bundle>mvn:com.example/features/${project.version}</bundle>
     </feature>
 
 </features>
