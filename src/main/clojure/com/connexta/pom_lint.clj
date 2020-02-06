@@ -8,7 +8,7 @@
   (:gen-class
    :name com.connexta.PomLint
    :main false
-   :methods [^:static [main [String] void]]))
+   :methods [^:static [lint [String] void]]))
 
 (defn xml->depstruct
   "Converts xml to a dependency structure object. This is a map of the form:
@@ -43,8 +43,39 @@
   [tags]
   (fn [xml] (tags (:tag xml))))
 
+(defn join [a b]
+  (set/union
+   (if-not (set? a) #{a} a)
+   (if-not (set? b) #{b} b)))
+
+(defn join-content [content]
+  (cond
+    (= (count content) 1)
+    (first content)
+
+    (every? map? content)
+    (reduce #(merge-with join %1 %2) {} content)
+
+    :else content))
+
+(defn xml->map [xml]
+  (if (string? xml)
+    xml
+    (merge (:attrs xml)
+           {(:tag xml)
+            (join-content
+             (map xml->map (:content xml)))})))
+
 (defn project-dependency [dep]
   (= (:version dep) "${project.version}"))
+
+(defn get-pom-as-dependency [data]
+  #{(merge
+     (select-keys (get-in data [:project :parent])
+                  #{:artifactId :groupId})
+     (select-keys (get data :project)
+                  #{:artifactId :groupId})
+     {:version "${project.version}"})})
 
 (defn get-root-deps
   "Returns a sequence of dependency structure maps representing the root dependencies of a maven
@@ -57,7 +88,8 @@
        (map xml->depstruct)
        (map #(merge {:version "${project.version}"} %))
        (filter project-dependency)
-       set))
+       set
+       (join (get-pom-as-dependency (xml->map data)))))
 
 (defn get-deps
   "Returns all dependencies in a pom file, at any depth. This includes those maven dependencies
@@ -114,7 +146,7 @@
                                (get-features features-xml)])]
     (set/difference all-deps root-deps)))
 
-(defn -main [project-directory]
+(defn -lint [project-directory]
   (let [missing (main project-directory)]
     (if-not (empty? missing)
       (throw (MojoExecutionException.
