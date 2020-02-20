@@ -12,6 +12,24 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
+    <scm>
+        <url>https://github.com/TonyMorrison/pom-lint.git</url>
+        <connection>scm:git:https://github.com/TonyMorrison/pom-lint.git</connection>
+        <developerConnection>scm:git:git@github.com:TonyMorrison/pom-lint.git</developerConnection>
+        <tag>HEAD</tag>
+    </scm>
+
+    <distributionManagement>
+        <snapshotRepository>
+            <id>snapshots</id>
+            <url>${snapshots.repository.url}</url>
+        </snapshotRepository>
+        <repository>
+            <id>releases</id>
+            <url>${releases.repository.url}</url>
+        </repository>
+    </distributionManagement>
+
     <dependencies>
         <dependency>
             <groupId>org.clojure</groupId>
