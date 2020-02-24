@@ -15,9 +15,9 @@
     </properties>
 
     <scm>
-        <url>https://github.com/TonyMorrison/pom-lint.git</url>
-        <connection>scm:git:https://github.com/TonyMorrison/pom-lint.git</connection>
-        <developerConnection>scm:git:git@github.com:TonyMorrison/pom-lint.git</developerConnection>
+        <url>https://github.com/connexta/pom-lint.git</url>
+        <connection>scm:git:https://github.com/connexta/pom-lint.git</connection>
+        <developerConnection>scm:git:git@github.com:connexta/pom-lint.git</developerConnection>
         <tag>HEAD</tag>
     </scm>
 
