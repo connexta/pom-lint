@@ -3,7 +3,7 @@
 
     <groupId>com.connexta</groupId>
     <artifactId>pom-lint</artifactId>
-    <version>1.0</version>
+    <version>1.1-SNAPSHOT</version>
     <packaging>maven-plugin</packaging>
 
     <properties>
@@ -18,7 +18,7 @@
         <url>https://github.com/connexta/pom-lint.git</url>
         <connection>scm:git:https://github.com/connexta/pom-lint.git</connection>
         <developerConnection>scm:git:git@github.com:connexta/pom-lint.git</developerConnection>
-        <tag>POM-LINT-1.0</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <distributionManagement>
