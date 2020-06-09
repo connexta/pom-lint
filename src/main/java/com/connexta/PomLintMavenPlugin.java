@@ -18,7 +18,7 @@ import org.apache.maven.project.MavenProject;
  * If both checks pass, the plugin will report nothing. If any dependencies are missing, the build
  * will fail and the missing dependencies will be printed on the screen.
  */
-@Mojo(name = "lint")
+@Mojo(name = "lint", threadSafe = true)
 public class PomLintMavenPlugin extends AbstractMojo {
     @Parameter(defaultValue = "${project}", required = true, readonly = true)
     private MavenProject project;
